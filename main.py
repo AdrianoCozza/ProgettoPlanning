@@ -40,12 +40,13 @@ class Elevator(pygame.sprite.Sprite):
         self.image = elevator_image
         self.rect = self.image.get_rect()
         self.rect.x = (SCREEN_WIDTH - self.rect.width) // 2
-        self.rect.y = floors[current_floor]
+        self.rect.y = floors[current_floor] - self.rect.height / 2
         self.passengers = []
         self.max_weight = max_weight
         self.current_weight = 0
 
     def move(self, target_y):
+        previous_rect_y = self.rect.y
         if self.rect.centery < target_y:
             self.rect.y += 5
             if self.rect.centery >= target_y:
@@ -56,8 +57,9 @@ class Elevator(pygame.sprite.Sprite):
             if self.rect.centery <= target_y:
                 self.rect.y = target_y - self.rect.height / 2
                 return False
-        for i, passenger in enumerate(self.passengers):
-            passenger.rect.y = self.rect.y + 10 + i * 20
+
+        for p in self.passengers:
+            p.rect.y += self.rect.y - previous_rect_y
         return True
 
 # Person sprite
