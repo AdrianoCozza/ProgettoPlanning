@@ -27,23 +27,21 @@ target_floor = None
 moving = False
 
 # Load and scale images
-elevator_image = pygame.image.load('elevator.png')
+elevator_image = pygame.image.load('imgs/elevator.png')
 elevator_image = pygame.transform.scale(elevator_image, (int(SCREEN_WIDTH * 0.1), int(SCREEN_HEIGHT * 0.2)))
 
-background_image = pygame.image.load('hotel.png')
+background_image = pygame.image.load('imgs/hotel.png')
 background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Elevator sprite
 class Elevator(pygame.sprite.Sprite):
-    def __init__(self, max_weight):
+    def __init__(self):
         super().__init__()
         self.image = elevator_image
         self.rect = self.image.get_rect()
         self.rect.x = (SCREEN_WIDTH - self.rect.width) // 2
         self.rect.y = floors[current_floor] - self.rect.height / 2
         self.passengers = []
-        self.max_weight = max_weight
-        self.current_weight = 0
 
     def move(self, target_y):
         previous_rect_y = self.rect.y
@@ -70,8 +68,8 @@ class Person(pygame.sprite.Sprite):
         all_colors = [ 'blue', 'yellow', 'red' ]
         random_chosen_color = all_colors[random.randint(0, len(all_colors)-1)]
         self.IMAGES = {
-            'WALKING': [f'guy/{random_chosen_color}_guy_walking_1.png', f'guy/{random_chosen_color}_guy_walking_2.png'],
-            'BASE': f'guy/{random_chosen_color}_guy_walking_0.png'
+            'WALKING': [f'imgs/passengers/{random_chosen_color}_guy_walking_1.png', f'imgs/passengers/{random_chosen_color}_guy_walking_2.png'],
+            'BASE': f'imgs/passengers/{random_chosen_color}_guy_walking_0.png'
         }
         img = pygame.image.load(self.IMAGES['BASE'])
         img = pygame.transform.scale(img, (int(SCREEN_WIDTH * 0.05), int(SCREEN_HEIGHT * 0.05)))
@@ -98,9 +96,8 @@ class Person(pygame.sprite.Sprite):
         self.is_running_backwards = False
 
     def enter_elevator(self, elevator):
-        if not self.in_elevator and (elevator.current_weight + self.weight <= elevator.max_weight):
+        if not self.in_elevator:
             elevator.passengers.append(self)
-            elevator.current_weight += self.weight
             self.in_elevator = True
             self.run_walking_animation = True
             self.target_x = elevator.rect.x + 10 + len(elevator.passengers) * 20
@@ -125,11 +122,10 @@ class Person(pygame.sprite.Sprite):
         if self.run_walking_animation:
             self.step_walking_animation()
 
-    def exit_elevator(self, elevator, floor):
+    def exit_elevator(self, floor):
         if self.in_elevator:
             #self.rect.x = 20 + len([p for p in people if not p.in_elevator]) * 30
             self.rect.y = floor
-            elevator.current_weight -= self.weight
             self.in_elevator = False
             self.target_x = -1
             self.run_walking_animation = True
@@ -141,7 +137,7 @@ class Person(pygame.sprite.Sprite):
         return f"Person(target_floor={self.target_floor}), in_elevator={self.in_elevator})"
 
 # Initialize elevator
-elevator = Elevator(max_weight=300)  # Adjust max weight as needed
+elevator = Elevator()  # Adjust max weight as needed
 all_sprites = pygame.sprite.Group()
 all_sprites.add(elevator)
 
@@ -190,7 +186,7 @@ while running:
                 for person in elevator.passengers:
                     if person.target_floor == current_floor:
                         elevator.passengers.remove(person)
-                        person.exit_elevator(elevator, floors[current_floor])
+                        person.exit_elevator(floors[current_floor])
                         #person.rect.y = floors[current_floor]  # Set the person to the current floor
 
     # Move the elevator
