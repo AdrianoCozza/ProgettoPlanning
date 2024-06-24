@@ -37,6 +37,15 @@ elevator_image = pygame.transform.scale(elevator_image, (int(SCREEN_WIDTH * 0.1)
 background_image = pygame.image.load('imgs/hotel.png')
 background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
+class Floor(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.image.load('imgs/floor.png')
+        self.image = pygame.transform.scale(self.image, (SCREEN_WIDTH / 2 - elevator_image.get_rect().width / 2, 10))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
 # Elevator sprite
 class Elevator(pygame.sprite.Sprite):
     def __init__(self):
@@ -148,12 +157,16 @@ all_sprites.add(elevator)
 # Initialize people
 people = [
     Person(20, floors[0], weight=60, priority=1, target_floor=1),
+    Person(20, floors[0], weight=60, priority=1, target_floor=1),
     Person(20, floors[1], weight=70, priority=2, target_floor=2),
     Person(20, floors[2], weight=80, priority=1, target_floor=0)
 ]
 
 for person in people:
     all_sprites.add(person)
+
+for f in floors:
+    all_sprites.add(Floor(0, f+people[0].rect.height))
 
 # Function to determine the next target floor
 def get_next_target_floor():
