@@ -34,7 +34,7 @@ moving = False
 elevator_image = pygame.image.load('imgs/elevator.png')
 elevator_image = pygame.transform.scale(elevator_image, (int(SCREEN_WIDTH * 0.1), int(SCREEN_HEIGHT * 0.2)))
 
-background_image = pygame.image.load('imgs/hotel.png')
+background_image = pygame.image.load('imgs/background_w_text.png')
 background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 class Floor(pygame.sprite.Sprite):
@@ -157,7 +157,7 @@ all_sprites.add(elevator)
 # Initialize people
 people = [
     Person(20, floors[0], weight=60, priority=1, target_floor=1),
-    Person(20, floors[0], weight=60, priority=1, target_floor=1),
+    Person(40, floors[0], weight=60, priority=1, target_floor=2),
     Person(20, floors[1], weight=70, priority=2, target_floor=2),
     Person(20, floors[2], weight=80, priority=1, target_floor=0)
 ]
@@ -166,7 +166,7 @@ for person in people:
     all_sprites.add(person)
 
 for f in floors:
-    all_sprites.add(Floor(0, f+people[0].rect.height))
+    all_sprites.add(Floor(0, f + people[0].rect.height))
 
 # Function to determine the next target floor
 def get_next_target_floor():
@@ -177,6 +177,13 @@ def get_next_target_floor():
 # Main loop
 running = True
 clock = pygame.time.Clock()
+
+def draw_text(txt: str, screen: pygame.surface.Surface):
+    font = pygame.font.Font(None, 24)
+    lines = txt.split('\n')
+    for i, l in enumerate(lines):
+        txt_surface = font.render(l, True, pygame.Color('black'))
+        screen.blit(txt_surface, (SCREEN_WIDTH - txt_surface.get_width() - 20, i*20 + 20))
 
 while running:
     for event in pygame.event.get():
@@ -216,6 +223,7 @@ while running:
     # Clear screen
     screen.blit(background_image, (0, 0))
 
+    draw_text('CIAO A TUTTI', screen)
     # Draw all sprites
     all_sprites.draw(screen)
 
