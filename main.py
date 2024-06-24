@@ -4,6 +4,10 @@ import random
 # Initialize Pygame
 pygame.init()
 
+# load sound 
+elevator_ding = pygame.mixer.Sound('sounds/elevator_ding.wav')
+
+
 # Get screen information
 info = pygame.display.Info()
 SCREEN_WIDTH = 800
@@ -194,6 +198,7 @@ while running:
         moving = elevator.move(floors[target_floor])
         if not moving:
             current_floor = target_floor
+            elevator_ding.play()
 
     # Clear screen
     screen.blit(background_image, (0, 0))
