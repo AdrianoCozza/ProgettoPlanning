@@ -1,12 +1,11 @@
-import pygame
-import random
+from game import Game
 
+"""
 # Initialize Pygame
 pygame.init()
 
 # load sound 
 elevator_ding = pygame.mixer.Sound('sounds/elevator_ding.wav')
-
 
 # Get screen information
 info = pygame.display.Info()
@@ -75,7 +74,6 @@ class Elevator(pygame.sprite.Sprite):
 
 # Person sprite
 class Person(pygame.sprite.Sprite):
-
     def __init__(self, x, y, weight, priority, target_floor):
         super().__init__()
         all_colors = [ 'blue', 'yellow', 'red' ]
@@ -237,3 +235,8 @@ while running:
         p.step_all_animations()
     
 pygame.quit()
+"""
+
+if __name__ == '__main__':
+    game = Game()
+    game.main_loop()
