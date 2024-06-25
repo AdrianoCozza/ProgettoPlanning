@@ -22,3 +22,7 @@ def parse_output(out):
         else: break
     
     return moves
+
+def run_program_and_parse_output():
+    (out, err) = run_enhsp_jar()
+    return parse_output(out)
