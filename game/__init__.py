@@ -27,7 +27,7 @@ class Game:
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(self.elevator)
 
-        # Must set this dynamically
+        
         self.people = []
         target_x = {}
         for person_label, current_floor, target_floor in raw_people:
@@ -46,6 +46,9 @@ class Game:
         self.running = False
         self.clock = pygame.time.Clock()
         self.busy = False
+
+        self.lines = []
+        self.max_lines = 16
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -84,8 +87,20 @@ class Game:
 
     def handle_next_move(self):
         if not self.parser.done():
-            move, args = self.parser.next_move()
-            print(move, args)
+            idx, move, args = self.parser.next_move()
+            txt = f'{idx} {move} {str(args)}'
+            print(txt)
+            self.lines.append(txt)
+
+            if len(self.lines) > self.max_lines:
+                self.lines = self.lines[1:]
+
+            if self.parser.done():
+                self.lines.append('SOLVED')
+
+            if len(self.lines) > self.max_lines:
+                self.lines = self.lines[1:]
+
             if move == 'move-down':
                 self.move_elevator('down')
             elif move == 'move-up':
@@ -99,11 +114,15 @@ class Game:
             elif move == 'reached':
                 self.passenger_leaves(*args)
 
-            
-
     def update_frame(self):
         # Reset frame
         self.screen.blit(BACKGROUND_IMAGE, (0, 0))
+
+        # Render text
+        font = pygame.font.Font(None, 20)
+        for i, l in enumerate(self.lines):
+            txt_surface = font.render(l, True, pygame.Color('white'))
+            self.screen.blit(txt_surface, (SCREEN_WIDTH - txt_surface.get_width() / 2 - 160, i*20 + 140))
 
         # Draw all sprites
         self.all_sprites.draw(self.screen)

@@ -3,7 +3,7 @@ import re
 from pddl.pddlrunner import run_enhsp_jar
 
 RE_FOUND_PLAN = re.compile(r"^Found Plan")
-RE_MOVE = re.compile(r"^(?:^\d+\.\d+\:\s)(?:\()(.*)(?:.*\))")
+RE_MOVE = re.compile(r"^(?:(^\d+\.\d+\:)\s)(?:\()(.*)(?:.*\))")
 
 def parse_output(out):
     lines = out.split("\n")
@@ -16,9 +16,9 @@ def parse_output(out):
             continue
         match = RE_MOVE.search(line)
         if match:
-            move = match.group(1)
+            idx, move = match.groups()
             action_args = move.split(" ")
-            moves.append((action_args[0], tuple(action_args[1:])))
+            moves.append((idx, action_args[0], tuple(action_args[1:])))
         else: break
     
     return moves
