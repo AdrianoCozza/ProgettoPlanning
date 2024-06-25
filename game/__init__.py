@@ -35,7 +35,6 @@ class Game:
                 target_x[current_floor] = 20
             else:
                 target_x[current_floor] += 30
-            print(person_label, current_floor, target_floor)
             self.people.append(Passenger(x=target_x[current_floor], y=self.floors[current_floor], target_floor=target_floor, label=person_label))
 
         for person in self.people:
@@ -53,33 +52,10 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                """
-                if event.key == pygame.K_1:
-                    self.target_floor = 0
-                    self.moving = True
-                elif event.key == pygame.K_2:
-                    self.target_floor = 1
-                    self.moving = True
-                elif event.key == pygame.K_3:
-                    self.target_floor = 2
-                    self.moving = True
-                elif event.key == pygame.K_SPACE:
-                    if self.current_floor is not None:
-                        for person in self.people:
-                            if person.rect.y == self.floors[self.current_floor] and not person.in_elevator and person.target_floor != self.current_floor:
-                                person.enter_elevator(self.elevator)
-                """
                 if event.key == pygame.K_q:
                     self.running = False
                 elif event.key == pygame.K_c:
                     self.handle_next_move()
-                """
-                elif event.key == pygame.K_r:
-                    for person in self.elevator.passengers:
-                        if person.target_floor == self.current_floor:
-                            self.elevator.passengers.remove(person)
-                            person.exit_elevator(self.floors[self.current_floor])
-                """
 
     def pickup_person(self, person_label):
         for p in self.people:
@@ -95,11 +71,16 @@ class Game:
             raise ValueError(f"Unknown direction: {direction}")
         self.moving = True
 
-    def drop_passengers(self):
+    def passenger_leaves(self, person_label):
+        for p in self.people:
+            if p.label == person_label:
+                p.reached()
+
+    def unload_passenger(self, person_label):
         for p in self.elevator.passengers:
-            if p.target_floor == self.current_floor:
+            if p.label == person_label:
                 self.elevator.passengers.remove(p)
-                p.exit_elevator(self.floors[self.current_floor])
+                p.unload_elevator(self.floors[self.current_floor], self.elevator.rect.centery)
 
     def handle_next_move(self):
         if not self.parser.done():
@@ -113,7 +94,11 @@ class Game:
                 person_label, elevator_id = args
                 self.pickup_person(person_label)
             elif move == 'unload':
-                self.drop_passengers()
+                person_label, elevator_id = args
+                self.unload_passenger(person_label)
+            elif move == 'reached':
+                self.passenger_leaves(*args)
+
             
 
     def update_frame(self):
@@ -146,8 +131,5 @@ class Game:
                     ELEVATOR_SOUND.play()
 
             self.update_frame()
-
-            if self.parser.done():
-                break
 
         pygame.quit()

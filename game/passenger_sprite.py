@@ -41,7 +41,7 @@ class Passenger(pygame.sprite.Sprite):
             elevator.passengers.append(self)
             self.in_elevator = True
             self.run_walking_animation = True
-            self.target_x = elevator.rect.x + 10 + len(elevator.passengers) * 20
+            self.target_x = elevator.rect.x
             self.current_step = 0
             self.step_size = abs(self.rect.x - self.target_x) / self.steps
             self.is_running_backwards = False
@@ -53,25 +53,35 @@ class Passenger(pygame.sprite.Sprite):
 
         self.current_step += 1
         self.rect.x += self.step_size
-        if self.current_step == self.steps and not self.is_running_backwards:
+        if self.current_step == self.steps:
             self.run_walking_animation = False
             self.image = self.base_image
             self.current_step = 0
             self.image = pygame.transform.flip(self.image, 1, 0)
+            self.steps = 50
 
     def step_all_animations(self):
         if self.run_walking_animation:
             self.step_walking_animation()
 
-    def exit_elevator(self, floor):
+    def reached(self):
+        self.steps = 50
+        self.in_elevator = False
+        self.target_x = -1
+        self.run_walking_animation = True
+        self.current_step = 0
+        self.step_size = -10
+        self.is_running_backwards = True
+    
+    def unload_elevator(self, floor, x):
         if self.in_elevator:
-            #self.rect.x = 20 + len([p for p in people if not p.in_elevator]) * 30
+            self.steps = 5
             self.rect.y = floor
             self.in_elevator = False
-            self.target_x = -1
+            self.target_x = x
             self.run_walking_animation = True
             self.current_step = 0
-            self.step_size = -10
+            self.step_size = -12
             self.is_running_backwards = True
 
     def __str__(self):
