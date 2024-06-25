@@ -42,8 +42,9 @@
   (:action load
     :parameters (?p - person ?e - elevator)
     :precondition (and
+      (not (reached ?p))
       (= (at-person ?p) (at-elevator ?e))
-      (<= (+ (passengers ?e) 1) (capacity ?e))
+      (<= (passengers ?e) (capacity ?e))
     )
     :effect (and
       (in ?e ?p)
