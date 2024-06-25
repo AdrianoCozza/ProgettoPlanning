@@ -5,7 +5,7 @@ def parse_problem_file(domain_file_path: str):
         lines = f.read().strip().split('\n')
     
     people = {}
-    current_floor = None
+    elevator_floor = None
 
     for line in lines:
         match = re.match(r'.*\(at-person ([a-zA-Z0-9]+)\) (\d+)', line)
@@ -25,7 +25,7 @@ def parse_problem_file(domain_file_path: str):
         
         match = re.match(r'.*\(at-elevator.*\) (\d+)', line)
         if match is not None:
-            current_floor = int(match.groups()[0]) - 1
+            elevator_floor = int(match.groups()[0]) - 1
 
     people_as_list = []
     # Validation
@@ -39,7 +39,7 @@ def parse_problem_file(domain_file_path: str):
 
         people_as_list.append((key, int(value['current_floor'])-1, int(value['target_floor'])-1))
 
-    if current_floor is None or current_floor <= 0:
+    if elevator_floor is None or elevator_floor <= 0:
         raise ValueError("Couldn't find elevator current floor")
 
-    return (people_as_list, current_floor)
+    return (people_as_list, elevator_floor)

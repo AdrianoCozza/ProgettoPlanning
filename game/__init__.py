@@ -35,7 +35,8 @@ class Game:
                 target_x[current_floor] = 20
             else:
                 target_x[current_floor] += 30
-            self.people.append(Passenger(x=target_x[current_floor], y=self.floors[target_floor], target_floor=target_floor, label=person_label))
+            print(person_label, current_floor, target_floor)
+            self.people.append(Passenger(x=target_x[current_floor], y=self.floors[current_floor], target_floor=target_floor, label=person_label))
 
         for person in self.people:
             self.all_sprites.add(person)
