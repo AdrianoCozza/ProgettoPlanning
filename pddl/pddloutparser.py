@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 from pddl.pddlrunner import run_enhsp_jar
+import os
 
 RE_FOUND_PLAN = re.compile(r"^Found Plan")
 RE_MOVE = re.compile(r"^(?:(^\d+\.\d+\:)\s)(?:\()(.*)(?:.*\))")
@@ -26,6 +27,7 @@ def parse_output(out):
 def run_program_and_parse_output():
     (out, err) = run_enhsp_jar()
     filename = datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + '.txt'
+    os.makedirs('logs', exist_ok=True)
     with open(f'logs/{filename}', 'w') as f:
         print(f'Solution stored in "{filename}" log file')
         f.write(out)

@@ -136,6 +136,12 @@ class Game:
         for p in self.people:
             p.step_all_animations()
 
+    def draw_text(screen, text, font, color, x, y):
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        text_rect.topleft = (x, y)
+        screen.blit(text_surface, text_rect)
+
     def main_loop(self):
         pygame.display.set_caption("Elevator Simulation")
         self.running = True
