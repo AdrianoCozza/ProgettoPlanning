@@ -89,7 +89,7 @@ class Game:
         if not self.parser.done():
             idx, move, args = self.parser.next_move()
             txt = f'{idx} {move} {str(args)}'
-            print(txt)
+            #print(txt)
             self.lines.append(txt)
 
             if len(self.lines) > self.max_lines:
@@ -144,8 +144,10 @@ class Game:
             self.handle_events()
 
             if self.moving and self.target_floor is not None:
-                moving = self.elevator.move(self.floors[self.target_floor])
-                if not moving:
+                self.elevator.image = ELEVATOR_CLOSED_IMAGE
+                self.moving = self.elevator.move(self.floors[self.target_floor])
+                if not self.moving:
+                    self.elevator.image = ELEVATOR_OPEN_IMAGE
                     self.current_floor = self.target_floor
                     ELEVATOR_SOUND.play()
 

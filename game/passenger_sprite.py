@@ -41,9 +41,9 @@ class Passenger(pygame.sprite.Sprite):
             elevator.passengers.append(self)
             self.in_elevator = True
             self.run_walking_animation = True
-            self.target_x = elevator.rect.x
+            self.target_x = elevator.rect.centerx
             self.current_step = 0
-            self.step_size = abs(self.rect.x - self.target_x) / self.steps
+            self.step_size = abs(self.rect.centerx - self.target_x) / self.steps
             self.is_running_backwards = False
     
     def step_walking_animation(self):
@@ -55,7 +55,10 @@ class Passenger(pygame.sprite.Sprite):
         self.rect.x += self.step_size
         if self.current_step == self.steps:
             self.run_walking_animation = False
-            self.image = self.base_image
+            if not self.is_running_backwards:
+                self.image = pygame.image.load('imgs/empty.png')
+            else:
+                self.image = self.base_image
             self.current_step = 0
             self.image = pygame.transform.flip(self.image, 1, 0)
             self.steps = 50
@@ -74,8 +77,9 @@ class Passenger(pygame.sprite.Sprite):
         self.is_running_backwards = True
     
     def unload_elevator(self, floor, x):
+        self.image = self.base_image
         if self.in_elevator:
-            self.steps = 5
+            self.steps = random.randint(7, 10)
             self.rect.y = floor
             self.in_elevator = False
             self.target_x = x
