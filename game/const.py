@@ -16,3 +16,5 @@ ELEVATOR_SOUND = pygame.mixer.Sound('sounds/elevator_ding.wav')
 
 BACKGROUND_IMAGE = pygame.image.load('imgs/background_w_text.png')
 BACKGROUND_IMAGE = pygame.transform.scale(BACKGROUND_IMAGE, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+MIN_DELAY_BETWEEN_MOVES = 1 # Expressed in seconds

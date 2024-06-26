@@ -34,7 +34,7 @@ class Game:
             if target_x.get(current_floor) is None:
                 target_x[current_floor] = 20
             else:
-                target_x[current_floor] += 30
+                target_x[current_floor] += 40
             self.people.append(Passenger(x=target_x[current_floor], y=self.floors[current_floor], target_floor=target_floor, label=person_label))
 
         for person in self.people:
@@ -50,6 +50,9 @@ class Game:
         self.lines = []
         self.max_lines = 16
 
+        self.visualization_paused = True
+        self.last_move_update = 0
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -58,7 +61,7 @@ class Game:
                 if event.key == pygame.K_q:
                     self.running = False
                 elif event.key == pygame.K_c:
-                    self.handle_next_move()
+                    self.visualization_paused = not self.visualization_paused
 
     def pickup_person(self, person_label):
         for p in self.people:
@@ -86,11 +89,23 @@ class Game:
                 p.unload_elevator(self.floors[self.current_floor], self.elevator.rect.centery)
 
     def handle_next_move(self):
-        if not self.parser.done():
+        busy_flag = self.moving
+        for p in self.people:
+            if p.run_walking_animation:
+                busy_flag = True
+                break
+
+        # Give me a delay of at least 2 seconds between moves
+        time_since_last_move = time.time() - self.last_move_update
+        if time_since_last_move <= MIN_DELAY_BETWEEN_MOVES:
+            busy_flag = True
+
+        if not self.parser.done() and not busy_flag and not self.visualization_paused:
             idx, move, args = self.parser.next_move()
             txt = f'{idx} {move} {str(args)}'
             #print(txt)
             self.lines.append(txt)
+            self.last_move_update = time.time()
 
             if len(self.lines) > self.max_lines:
                 self.lines = self.lines[1:]
@@ -127,6 +142,18 @@ class Game:
         # Draw all sprites
         self.all_sprites.draw(self.screen)
 
+        # Draw passengers nametags
+        spacing = 0
+        for p in self.people:
+            x = p.rect.x + p.rect.width / 2 - 10
+            y = p.rect.centery - p.rect.height / 2 - 10
+            if p in self.elevator.passengers and not p.run_walking_animation:
+                x = self.elevator.rect.centerx + self.elevator.rect.width / 2
+                y = self.elevator.rect.y + spacing
+                spacing += 15
+
+            self.screen.blit(p.nametag, (x, y))
+
         # Update display
         pygame.display.flip()
 
@@ -157,6 +184,7 @@ class Game:
                     self.current_floor = self.target_floor
                     ELEVATOR_SOUND.play()
 
+            self.handle_next_move()
             self.update_frame()
 
         pygame.quit()

@@ -35,6 +35,8 @@ class Passenger(pygame.sprite.Sprite):
         self.steps = 50
         self.current_step = 0
         self.is_running_backwards = False
+        nametag_font = pygame.font.Font(None, 12)
+        self.nametag = nametag_font.render(self.label, 1, pygame.Color('white'))
 
     def enter_elevator(self, elevator):
         if not self.in_elevator:
