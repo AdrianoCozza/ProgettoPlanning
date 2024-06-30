@@ -28,6 +28,11 @@ def run_program_and_parse_output():
     (out, err) = run_enhsp_jar()
     filename = datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + '.txt'
     os.makedirs('logs', exist_ok=True)
+    if err.strip() != "":
+        with open(f'logs/{filename}', 'w') as f:
+            f.write(err)
+        raise SyntaxError(f"Couldn't solve problem, check logs/{filename} for more details.")
+
     with open(f'logs/{filename}', 'w') as f:
         print(f'Solution stored in "{filename}" log file')
         f.write(out)
