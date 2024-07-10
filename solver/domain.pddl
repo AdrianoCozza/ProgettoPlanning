@@ -44,7 +44,7 @@
     :precondition (and
       (not (reached ?p))
       (= (at-person ?p) (at-elevator ?e))
-      (<= (passengers ?e) (capacity ?e))
+      (< (passengers ?e) (capacity ?e))
     )
     :effect (and
       (in ?e ?p)
