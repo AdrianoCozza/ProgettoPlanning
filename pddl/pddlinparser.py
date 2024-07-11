@@ -43,7 +43,7 @@ def parse_problem_file(domain_file_path: str):
 
         people_as_list.append((key, int(value['current_floor'])-1, int(value['target_floor'])-1))
 
-    if elevator_floor is None or elevator_floor <= 0:
+    if elevator_floor is None or elevator_floor < 0:
         raise ValueError("Couldn't find elevator current floor")
 
     return (people_as_list, elevator_floor, num_floors)
