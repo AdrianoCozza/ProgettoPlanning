@@ -18,8 +18,17 @@ class Game:
         # Initializing pygame data
         self.screen_info = pygame.display.Info()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.floors = [int(SCREEN_HEIGHT * 0.85), int(SCREEN_HEIGHT * 0.5), int(SCREEN_HEIGHT * 0.15)]
-        raw_people, current_floor = self.parser.get_people()
+        self.floors = []
+        raw_people, current_floor, num_floors = self.parser.get()
+
+        if num_floors < 1 or num_floors > 4:
+            print('Number of floors invalid: please specify a number of floors from 1-4')
+            exit(1)
+        
+        floor_start_x = 10
+        for i in range(num_floors):
+            self.floors.append(int(SCREEN_HEIGHT * ( (num_floors - i) / 5) + floor_start_x))
+
         self.current_floor = current_floor
         self.target_floor = self.current_floor
         self.moving = False

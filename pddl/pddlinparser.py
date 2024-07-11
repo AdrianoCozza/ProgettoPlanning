@@ -6,8 +6,12 @@ def parse_problem_file(domain_file_path: str):
     
     people = {}
     elevator_floor = None
+    num_floors = None
 
     for line in lines:
+        match = re.match(r'.*\(floors\) (\d+)', line)
+        if match is not None:
+            num_floors = int(match.groups()[0])
         match = re.match(r'.*\(at-person ([a-zA-Z0-9]+)\) (\d+)', line)
         if match is not None:
             person_label, current_floor = match.groups()
@@ -42,4 +46,4 @@ def parse_problem_file(domain_file_path: str):
     if elevator_floor is None or elevator_floor <= 0:
         raise ValueError("Couldn't find elevator current floor")
 
-    return (people_as_list, elevator_floor)
+    return (people_as_list, elevator_floor, num_floors)

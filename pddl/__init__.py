@@ -6,7 +6,7 @@ class Parser:
         self.moves = run_program_and_parse_output()
         self.count = 0
 
-    def get_people(self):
+    def get(self):
         return parse_problem_file('solver/problem.pddl')
 
     def get_moves(self):
