@@ -47,6 +47,11 @@ class Passenger(pygame.sprite.Sprite):
             self.current_step = 0
             self.step_size = abs(self.rect.centerx - self.target_x) / self.steps
             self.is_running_backwards = False
+            if self.rect.x > elevator.rect.x:
+                self.steps = 20
+                self.step_size = -abs(self.rect.centerx - self.target_x) / self.steps
+                self.is_running_backwards = True
+            self.entering_elevator = True
     
     def step_walking_animation(self):
         self.image = self.walking_animation_imgs[self.current_step % len(self.walking_animation_imgs)]
@@ -57,13 +62,12 @@ class Passenger(pygame.sprite.Sprite):
         self.rect.x += self.step_size
         if self.current_step == self.steps:
             self.run_walking_animation = False
-            if not self.is_running_backwards:
+            if self.entering_elevator:
                 self.image = pygame.image.load('imgs/empty.png')
-            else:
-                self.image = self.base_image
             self.current_step = 0
             self.image = pygame.transform.flip(self.image, 1, 0)
             self.steps = 50
+            self.entering_elevator = False
 
     def step_all_animations(self):
         if self.run_walking_animation:
@@ -77,6 +81,7 @@ class Passenger(pygame.sprite.Sprite):
         self.current_step = 0
         self.step_size = -10
         self.is_running_backwards = True
+        self.image = pygame.image.load('imgs/empty.png')
     
     def unload_elevator(self, floor, x):
         self.image = self.base_image
@@ -87,8 +92,12 @@ class Passenger(pygame.sprite.Sprite):
             self.target_x = x
             self.run_walking_animation = True
             self.current_step = 0
-            self.step_size = -12
-            self.is_running_backwards = True
+            if x < self.rect.x:
+                self.step_size = -12
+                self.is_running_backwards = True
+            else:
+                self.step_size = 12
+                self.is_running_backwards = False
 
     def __str__(self):
         return f"Person(target_floor={self.target_floor}), in_elevator={self.in_elevator})"

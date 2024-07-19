@@ -2,11 +2,11 @@ import pygame
 from game.const import *
 
 class Elevator(pygame.sprite.Sprite):
-    def __init__(self, current_floor_y):
+    def __init__(self, current_floor_y, x):
         super().__init__()
         self.image = ELEVATOR_OPEN_IMAGE
         self.rect = self.image.get_rect()
-        self.rect.x = (SCREEN_WIDTH - self.rect.width) // 2
+        self.rect.x = x
         self.rect.y = current_floor_y - self.rect.height / 2
         self.passengers = []
 

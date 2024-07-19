@@ -1,6 +1,7 @@
 import pygame
 from game.const import *
 from game.elevator_sprite import Elevator
+from game.invisible_elevator_sprite import InvisibleElevator
 from game.passenger_sprite import Passenger
 from game.floor_sprite import Floor
 from pddl import Parser
@@ -19,7 +20,7 @@ class Game:
         self.screen_info = pygame.display.Info()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.floors = []
-        raw_people, current_floor, num_floors = self.parser.get()
+        raw_people, current_floor_elevator_x, current_floor_elevator_y, num_floors = self.parser.get()
 
         if num_floors < 1 or num_floors > 4:
             print('Number of floors invalid: please specify a number of floors from 1-4')
@@ -29,28 +30,40 @@ class Game:
         for i in range(num_floors):
             self.floors.append(int(SCREEN_HEIGHT * ( (num_floors - i) / 5) + floor_start_x))
 
-        self.current_floor = current_floor
-        self.target_floor = self.current_floor
-        self.moving = False
-        self.elevator = Elevator(self.floors[self.current_floor])
-        self.all_sprites = pygame.sprite.Group()
-        self.all_sprites.add(self.elevator)
+        self.current_floor_elevator_x = current_floor_elevator_x
+        self.target_floor_elevator_x = self.current_floor_elevator_x
 
+        self.current_floor_elevator_y = current_floor_elevator_y
+        self.target_floor_elevator_y = self.current_floor_elevator_y
+
+        self.moving_elevator_x = False
+        self.moving_elevator_y = False
+
+        self.elevatorX = Elevator(self.floors[self.current_floor_elevator_x], (SCREEN_WIDTH - ELEVATOR_CLOSED_IMAGE.get_width()) // 1.675)
+        self.all_sprites = pygame.sprite.Group()
+        self.all_sprites.add(self.elevatorX)
+
+        if self.current_floor_elevator_y is not None:
+            self.elevatorY = Elevator(self.floors[self.current_floor_elevator_y], 0)
+        else:
+            self.elevatorY = InvisibleElevator()
+
+        self.all_sprites.add(self.elevatorY)
         
         self.people = []
         target_x = {}
-        for person_label, current_floor, target_floor in raw_people:
-            if target_x.get(current_floor) is None:
-                target_x[current_floor] = 20
+        for person_label, current_floor_elevator_x, target_floor in raw_people:
+            if target_x.get(current_floor_elevator_x) is None:
+                target_x[current_floor_elevator_x] = 20
             else:
-                target_x[current_floor] += 40
-            self.people.append(Passenger(x=target_x[current_floor], y=self.floors[current_floor], target_floor=target_floor, label=person_label))
+                target_x[current_floor_elevator_x] += 40
+            self.people.append(Passenger(x=target_x[current_floor_elevator_x] + ELEVATOR_CLOSED_IMAGE.get_width(), y=self.floors[current_floor_elevator_x], target_floor=target_floor, label=person_label))
 
         for person in self.people:
             self.all_sprites.add(person)
 
         for f in self.floors:
-            self.all_sprites.add(Floor(0, f + self.people[0].rect.height))
+            self.all_sprites.add(Floor(ELEVATOR_CLOSED_IMAGE.get_width(), f + self.people[0].rect.height))
         
         self.running = False
         self.clock = pygame.time.Clock()
@@ -72,33 +85,57 @@ class Game:
                 elif event.key == pygame.K_c:
                     self.visualization_paused = not self.visualization_paused
 
-    def pickup_person(self, person_label):
+    def pickup_person(self, person_label, elevator_id):
         for p in self.people:
             if p.label == person_label:
-                p.enter_elevator(self.elevator)
+                if elevator_id == 'elevatorX':
+                    p.enter_elevator(self.elevatorX)
+                else:
+                    p.enter_elevator(self.elevatorY)
     
-    def move_elevator(self, direction):
-        if direction == 'up':
-            self.target_floor += 1
-        elif direction == 'down':
-            self.target_floor -= 1
+    def move_elevator(self, direction, elevator_id):
+        if elevator_id == 'elevatorX':
+            if direction == 'up':
+                self.target_floor_elevator_x += 1
+            elif direction == 'down':
+                self.target_floor_elevator_x -= 1
+            else:
+                raise ValueError(f"Unknown direction: {direction}")
+            self.moving_elevator_x = True
+        elif elevator_id == 'elevatorY':
+            if direction == 'up':
+                self.target_floor_elevator_y += 1
+            elif direction == 'down':
+                self.target_floor_elevator_y -= 1
+            else:
+                raise ValueError(f"Unknown direction: {direction}")
+            self.moving_elevator_y = True
         else:
-            raise ValueError(f"Unknown direction: {direction}")
-        self.moving = True
+            raise ValueError(f"Unknown elevator: {elevator_id}")
 
     def passenger_leaves(self, person_label):
+        to_remove = []
         for p in self.people:
             if p.label == person_label:
                 p.reached()
+                to_remove.append(p)
+        
+        for p in to_remove:
+            self.people.remove(p)
 
-    def unload_passenger(self, person_label):
-        for p in self.elevator.passengers:
+    def unload_passenger(self, person_label, elevator_id):
+        for p in self.elevatorX.passengers:
             if p.label == person_label:
-                self.elevator.passengers.remove(p)
-                p.unload_elevator(self.floors[self.current_floor], self.elevator.rect.centery)
+                self.elevatorX.passengers.remove(p)
+                p.unload_elevator(self.floors[self.current_floor_elevator_x], self.elevatorX.rect.centery)
+
+        for p in self.elevatorY.passengers:
+            if p.label == person_label:
+                self.elevatorY.passengers.remove(p)
+                p.unload_elevator(self.floors[self.current_floor_elevator_y], self.elevatorY.rect.centery)
 
     def handle_next_move(self):
-        busy_flag = self.moving
+        busy_flag = self.moving_elevator_x or self.moving_elevator_y
         for p in self.people:
             if p.run_walking_animation:
                 busy_flag = True
@@ -126,15 +163,15 @@ class Game:
                 self.lines = self.lines[1:]
 
             if move == 'move-down':
-                self.move_elevator('down')
+                self.move_elevator('down', args[0])
             elif move == 'move-up':
-                self.move_elevator('up')
+                self.move_elevator('up', args[0])
             elif move == 'load':
                 person_label, elevator_id = args
-                self.pickup_person(person_label)
+                self.pickup_person(person_label, elevator_id)
             elif move == 'unload':
                 person_label, elevator_id = args
-                self.unload_passenger(person_label)
+                self.unload_passenger(person_label, elevator_id)
             elif move == 'reached':
                 self.passenger_leaves(*args)
 
@@ -156,9 +193,14 @@ class Game:
         for p in self.people:
             x = p.rect.x + p.rect.width / 2 - 10
             y = p.rect.centery - p.rect.height / 2 - 10
-            if p in self.elevator.passengers and not p.run_walking_animation:
-                x = self.elevator.rect.centerx + self.elevator.rect.width / 2
-                y = self.elevator.rect.y + spacing
+            if p in self.elevatorX.passengers and not p.run_walking_animation:
+                x = self.elevatorX.rect.centerx + self.elevatorX.rect.width / 2
+                y = self.elevatorX.rect.y + spacing
+                spacing += 15
+            
+            if p in self.elevatorY.passengers and not p.run_walking_animation:
+                x = self.elevatorY.rect.centerx + self.elevatorX.rect.width / 2
+                y = self.elevatorY.rect.y + spacing
                 spacing += 15
 
             self.screen.blit(p.nametag, (x, y))
@@ -185,12 +227,20 @@ class Game:
         while self.running:
             self.handle_events()
 
-            if self.moving and self.target_floor is not None:
-                self.elevator.image = ELEVATOR_CLOSED_IMAGE
-                self.moving = self.elevator.move(self.floors[self.target_floor])
-                if not self.moving:
-                    self.elevator.image = ELEVATOR_OPEN_IMAGE
-                    self.current_floor = self.target_floor
+            if self.moving_elevator_x and self.target_floor_elevator_x is not None:
+                self.elevatorX.image = ELEVATOR_CLOSED_IMAGE
+                self.moving_elevator_x = self.elevatorX.move(self.floors[self.target_floor_elevator_x])
+                if not self.moving_elevator_x:
+                    self.elevatorX.image = ELEVATOR_OPEN_IMAGE
+                    self.current_floor_elevator_x = self.target_floor_elevator_x
+                    ELEVATOR_SOUND.play()
+            
+            if self.moving_elevator_y and self.target_floor_elevator_y is not None:
+                self.elevatorY.image = ELEVATOR_CLOSED_IMAGE
+                self.moving_elevator_y = self.elevatorY.move(self.floors[self.target_floor_elevator_y])
+                if not self.moving_elevator_y:
+                    self.elevatorY.image = ELEVATOR_OPEN_IMAGE
+                    self.current_floor_elevator_y = self.target_floor_elevator_y
                     ELEVATOR_SOUND.play()
 
             self.handle_next_move()
